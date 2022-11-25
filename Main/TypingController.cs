@@ -6,6 +6,7 @@ public class TypingController : Node2D
 {
 	private TypingSequence _typingSequence;
 	private string currentTextToType;
+	private string currentTextToDisplay;
 	private int currentLetter;
 	private bool stopTyping;
 
@@ -13,13 +14,14 @@ public class TypingController : Node2D
 	public override void _Ready()
 	{
 		_typingSequence = GetTree().Root.GetNode<TypingSequence>("Node2D/TypingSequence");
-		SetTextToType(_typingSequence.GetCurrent().Capitalize());
+		SetTextToType(_typingSequence.GetCurrent());
 	}
 
 	void SetTextToType(string text)
 	{
 		GetNode<RichTextLabel>("TypingDisplay").BbcodeText = "[color=#32CD32][/color]" + text;
-		currentTextToType = text;
+		currentTextToType = text.ToUpper();
+		currentTextToDisplay = text;
 	}
 
 	void ProgressCurrentLetter()
@@ -32,7 +34,7 @@ public class TypingController : Node2D
 		}
 
 		var ascii = currentTextToType[currentLetter];
-		Console.Write(ascii);
+		GD.Print(ascii + " | " + (ascii < 65) + " | " + (ascii > 90));
 		if (ascii < 65 || ascii > 90)
 		{
 			ProgressCurrentLetter();
@@ -48,11 +50,9 @@ public class TypingController : Node2D
 	public override void _Input(InputEvent @event)
 	{
 		string eventText = @event.AsText();
-		InputEventKey keyInput = ;
-		if (!keyInput.IsClass("InputEventKey"))
-		{
-			return;
-		}
+		InputEventKey keyInput = @event as InputEventKey;
+		if (keyInput == null) return;
+
 		if (!keyInput.IsEcho() && keyInput.IsPressed())
 		{
 			if (!stopTyping)
@@ -62,7 +62,7 @@ public class TypingController : Node2D
 				if (currentTextToType[currentLetter] == keyInput.Scancode)
 				{
 					ProgressCurrentLetter();
-					string newText = currentTextToType.Insert(currentLetter, "[/color]");
+					string newText = currentTextToDisplay.Insert(currentLetter, "[/color]");
 					GetNode<RichTextLabel>("TypingDisplay").BbcodeText = "[color=#32CD32]" + newText;
 				}
 			}
